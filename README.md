@@ -46,3 +46,4 @@ Checked JavaScript syntax, unique HTML IDs, local asset paths, section links, al
 
 ## Hosting later
 This is an unhosted, dependency-free static website. Keep these files together for future deployment to Vercel. No hosting account or deployment has been created.
+Portfolio deployed using Vercel.
