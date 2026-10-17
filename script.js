@@ -85,21 +85,38 @@ document.querySelectorAll('dialog').forEach((dialog) => {
   });
 });
 
-// Highlight the visible section in the sticky navigation.
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      navigation.querySelectorAll('a').forEach((link) => {
-        if (link.getAttribute('href') === `#${entry.target.id}`) {
-          link.setAttribute('aria-current', 'location');
-        } else {
-          link.removeAttribute('aria-current');
-        }
-      });
-    });
-  }, { rootMargin: '-15% 0px -60% 0px', threshold: 0 });
-  document.querySelectorAll('main section[id]').forEach((section) => observer.observe(section));
+// Highlight the last menu section that has reached the sticky header.
+// Home remains active throughout the opening area, including the approach cards.
+const sectionLinks = Array.from(navigation.querySelectorAll('a[href^="#"]'));
+const menuSections = sectionLinks.map((link) => ({
+  link,
+  section: document.querySelector(link.getAttribute('href'))
+})).filter((item) => item.section);
+const siteHeader = document.querySelector('header');
+function updateActiveNavigation() {
+  const activationLine = siteHeader.getBoundingClientRect().bottom + 20;
+  let current = menuSections[0];
+  for (const item of menuSections) {
+    if (item.section.getBoundingClientRect().top <= activationLine) current = item;
+  }
+  for (const item of menuSections) {
+    if (item === current) item.link.setAttribute('aria-current', 'location');
+    else item.link.removeAttribute('aria-current');
+  }
 }
+let navigationFramePending = false;
+function scheduleNavigationUpdate() {
+  if (navigationFramePending) return;
+  navigationFramePending = true;
+  requestAnimationFrame(() => {
+    navigationFramePending = false;
+    updateActiveNavigation();
+  });
+}
+window.addEventListener('scroll', scheduleNavigationUpdate, { passive: true });
+window.addEventListener('resize', scheduleNavigationUpdate);
+window.addEventListener('load', scheduleNavigationUpdate);
+window.addEventListener('hashchange', scheduleNavigationUpdate);
+updateActiveNavigation();
 
 document.querySelector('#year').textContent = new Date().getFullYear();
